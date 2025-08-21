@@ -29,7 +29,8 @@
     "discord.js": "14.22.0",
     "libsodium-wrappers": "0.7.15",
     "sodium": "3.0.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@types/node": "24.3.0"

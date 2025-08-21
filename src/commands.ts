@@ -6,12 +6,13 @@ import { REST, Client, Collection, SlashCommandBuilder, Routes, ChatInputCommand
 import { VoiceConnection } from "@discordjs/voice";
 
 import config from "./config.js";
+import { Queue } from "./Queue.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export interface ServerOptions {
-    connection: VoiceConnection | null
+    queue: Queue<{ userId: string, content: string }>
 }
 
 export interface CommandRunOptions {

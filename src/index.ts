@@ -1,7 +1,9 @@
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { Client, Collection, Events, GatewayIntentBits, GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { getVoiceConnection } from "@discordjs/voice";
 
 import config from "./config.js";
 import { CommandI, loadCommands, ServerOptions } from "./commands.js";
+import { Queue } from "./Queue.js";
 
 const client = new Client({
     intents: [
@@ -24,7 +26,7 @@ client.once(Events.ClientReady, async (readyClient) => {
     loadCommands(readyClient, commands);
 });
 
-const serverOptions = new Map<string, ServerOptions>();
+const serversOptions = new Map<string, ServerOptions>();
 
 client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand() || !interaction.guild) return;
@@ -36,10 +38,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         return;
     }
 
-    if(!serverOptions.has(interaction.guild.id)) serverOptions.set(interaction.guild.id, { connection: null });
+    if(!serversOptions.has(interaction.guild.id)) serversOptions.set(interaction.guild.id, { queue: new Queue() });
 
     try {
-        await command.run({ client: interaction.client, interaction, server: serverOptions.get(interaction.guild.id) as ServerOptions });
+        await command.run({ client: interaction.client, interaction, server: serversOptions.get(interaction.guild.id) as ServerOptions });
     } catch (error) {
         console.error(error);
         if (interaction.replied || interaction.deferred) {
@@ -50,8 +52,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 });
 
-// client.on(Events.MessageCreate, async (message) => {
-//     console.log("Message", message);
-// });
+client.on(Events.MessageCreate, async (message) => {
+    if(message.author.id === message.client.user.id) return;
+
+    if(!message.guild || !message.channel || !message.member) return;
+
+    if(!(message.member instanceof GuildMember)) return;
+
+    const voiceChannel = message.member.voice.channel;
+
+    if(!voiceChannel) return
+
+    const connection = getVoiceConnection(message.guild.id);
+
+    if(!connection || connection.joinConfig.channelId !== voiceChannel.id) return;
+
+    if(!serversOptions.has(message.guild.id)) serversOptions.set(message.guild.id, { queue: new Queue() });
+
+    const server = serversOptions.get(message.guild.id) as ServerOptions;
+
+    server.queue.push({ userId: message.author.id, content: message.content });
+});
 
 client.login(config.TOKEN);

@@ -2,11 +2,12 @@ import { GuildMember, MessageFlags } from "discord.js";
 import { getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 
 import { CommandI } from "../commands.js";
+import { startVoiceWorker } from "../voiceWorker.js";
 
 export default {
     name: "join",
     description: "Join to the current call.",
-    run: async ({ interaction }) => {
+    run: async ({ interaction, server }) => {
         if(!interaction.guild || !interaction.channel || !interaction.member) return;
 
         if(!(interaction.member instanceof GuildMember)) return;
@@ -26,6 +27,8 @@ export default {
             guildId: voiceChannel.guild.id,
             adapterCreator: voiceChannel.guild.voiceAdapterCreator
         });
+
+        startVoiceWorker(interaction.client, interaction.guild.id, server);
 
         await interaction.reply({ content: "Ok!", flags: MessageFlags.Ephemeral });
     }
