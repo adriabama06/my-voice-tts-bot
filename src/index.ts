@@ -1,7 +1,7 @@
 import { Client, Collection, Events, GatewayIntentBits, MessageFlags, SlashCommandBuilder } from "discord.js";
 
 import config from "./config.js";
-import { CommandI, loadCommands } from "./commands.js";
+import { CommandI, loadCommands, ServerOptions } from "./commands.js";
 
 const client = new Client({
     intents: [
@@ -24,8 +24,10 @@ client.once(Events.ClientReady, async (readyClient) => {
     loadCommands(readyClient, commands);
 });
 
+const serverOptions = new Map<string, ServerOptions>();
+
 client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand() || !interaction.guild) return;
 
     const command = commands.get(interaction.commandName);
 
@@ -34,8 +36,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         return;
     }
 
+    if(!serverOptions.has(interaction.guild.id)) serverOptions.set(interaction.guild.id, { connection: null });
+
     try {
-        await command.run({ client: interaction.client, interaction });
+        await command.run({ client: interaction.client, interaction, server: serverOptions.get(interaction.guild.id) as ServerOptions });
     } catch (error) {
         console.error(error);
         if (interaction.replied || interaction.deferred) {

@@ -3,14 +3,21 @@ import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 
 import { REST, Client, Collection, SlashCommandBuilder, Routes, ChatInputCommandInteraction, CacheType } from "discord.js";
+import { VoiceConnection } from "@discordjs/voice";
+
 import config from "./config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+export interface ServerOptions {
+    connection: VoiceConnection | null
+}
+
 export interface CommandRunOptions {
     client: Client<true>,
-    interaction: ChatInputCommandInteraction<CacheType>
+    interaction: ChatInputCommandInteraction<CacheType>,
+    server: ServerOptions
 }
 
 export interface CommandI {
