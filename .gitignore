@@ -1,3 +1,7 @@
+# Custom
+samples/*.wav
+samples/*.txt
+
 # Logs
 logs
 *.log

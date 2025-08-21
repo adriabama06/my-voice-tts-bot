@@ -1,7 +1,6 @@
 import fs from "fs";
-import path from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
+import path, { dirname } from "path";
 
 import { REST, Client, Collection, SlashCommandBuilder, Routes, ChatInputCommandInteraction, CacheType } from "discord.js";
 import config from "./config.js";
@@ -17,7 +16,8 @@ export interface CommandRunOptions {
 export interface CommandI {
     name: string,
     description: string,
-    run: (options: CommandRunOptions) => Promise<void>
+    run: (options: CommandRunOptions) => Promise<void>,
+    loadOptions?: (slashCommand: SlashCommandBuilder) => SlashCommandBuilder
 }
 
 export const loadCommands = async (client: Client<true>, commands: Collection<string, CommandI>) => {
@@ -34,9 +34,13 @@ export const loadCommands = async (client: Client<true>, commands: Collection<st
         const command: CommandI = commandModule.default;
 
         if ("name" in command && "description" in command && "run" in command) {
-            const slashCommand = new SlashCommandBuilder()
+            let slashCommand = new SlashCommandBuilder()
                 .setName(command.name)
                 .setDescription(command.description);
+
+            if(command.loadOptions) {
+                slashCommand = command.loadOptions(slashCommand);
+            }
 
             commands.set(command.name, command);
 
@@ -51,7 +55,9 @@ export const loadCommands = async (client: Client<true>, commands: Collection<st
     const rest = new REST().setToken(config.TOKEN);
 
     try {
-		console.log(`Started refreshing ${commandsJson.length} application (/) commands.`);
+		console.log(`[INFO] Started refreshing ${commandsJson.length} application (/) commands.`);
+
+        // console.log(JSON.stringify(commandsJson, undefined, 2))
 
 		// The put method is used to fully refresh all commands in the guild with the current set
 		const data = await rest.put(
@@ -59,10 +65,10 @@ export const loadCommands = async (client: Client<true>, commands: Collection<st
 			{ body: commands },
 		) as unknown[];
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		console.log(`[INFO] Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
-		console.log(`Error refreshing ${commandsJson.length} application (/) commands.`);
+		console.log(`[WARNING] Error refreshing ${commandsJson.length} application (/) commands.`);
 		console.error(error);
 	}
 }
