@@ -1,7 +1,7 @@
 {
   "name": "my-voice-tts-bot",
   "version": "0.0.1",
-  "description": "Use your voice to use the tts bot",
+  "description": "A Discord bot that uses your voice to generate text-to-speech (TTS) audio using voice cloning technology",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -14,7 +14,11 @@
   },
   "keywords": [
     "discord",
-    "discord.js"
+    "discord.js",
+    "tts",
+    "text-to-speech",
+    "voice-cloning",
+    "ai"
   ],
   "author": "adriabama06",
   "license": "MIT",
