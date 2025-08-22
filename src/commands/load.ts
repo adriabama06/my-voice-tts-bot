@@ -17,10 +17,10 @@ export default {
         await interaction.reply({ content: "Please send a audio.", flags: MessageFlags.Ephemeral });
 
         const audio = await new Promise<Attachment | null>(async (resolve) => {
-            if(!interaction.channel || !interaction.member || !interaction.channel.isSendable() || !interaction.channel.isTextBased()) return resolve(null);
+            if(!interaction.channel || !interaction.channel.isSendable() || !interaction.channel.isTextBased()) return resolve(null);
 
             const collector = interaction.channel.createMessageCollector({
-                filter: (msg) => msg.attachments.size > 0 && interaction.member !== null && interaction.member.user.id === msg.author.id,
+                filter: (msg) => msg.attachments.size > 0 && interaction.user.id === msg.author.id,
                 time: 3 * 60 * 1000
             });
 
@@ -40,6 +40,8 @@ export default {
         });
 
         if(!audio) return await interaction.followUp({ content: "Timeout! Try again.", flags: MessageFlags.Ephemeral });
+
+        await interaction.followUp({ content: "Loading audio...", flags: MessageFlags.Ephemeral });
 
         const outputFile = path.join(__dirname, "..", "..", "samples", `${interaction.user.id}.wav`);
 
@@ -69,13 +71,11 @@ export default {
 
             ff.on("close", async (code) => {
                 if (code === 0) {
-                    await interaction.followUp({ content: "Your audio has been saved successfully!", flags: MessageFlags.Ephemeral });
-
                     const result = await whipserTranscribe(outputFile);
 
-                    if(!result) return await interaction.followUp({ content: "Error generating automatic transcription, the transcription will be generated again when you use the bot, or try uploading the audio again.", flags: MessageFlags.Ephemeral });;
+                    await interaction.followUp({ content: "Your audio has been saved successfully!", flags: MessageFlags.Ephemeral });
 
-                    writeFileSync(outputFile + ".txt", result, { encoding: "utf-8" });
+                    if(result) writeFileSync(outputFile + ".txt", result, { encoding: "utf-8" });
                 }
                 else await interaction.followUp({ content: "Error saving your audio!", flags: MessageFlags.Ephemeral });
             });
