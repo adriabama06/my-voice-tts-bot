@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
 
-import { encode } from "@msgpack/msgpack";
 import { v4 as uuid_v4 } from "uuid";
 
 import config from "../config.js";
@@ -41,8 +40,6 @@ const FishSpeechDataDefault = (): FishSpeechData => ({
 });
 
 const FishSpeechInference = async (data: FishSpeechData): Promise<ArrayBuffer> => {
-    const body = encode(data);
-
     const response = await fetch(config.TTS_URL, {
         method: "POST",
         headers: {
