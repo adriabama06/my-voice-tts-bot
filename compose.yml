@@ -1,0 +1,42 @@
+services:
+  whisper:
+    ports:
+      - 6674:8000
+    image: ghcr.io/speaches-ai/speaches:latest-cuda-12.6.3
+    restart: always
+    volumes:
+      - ./docker/configs/model_aliases.turbo.json:/home/ubuntu/speaches/model_aliases.json
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://0.0.0.0:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+  openaudio-s1-mini:
+    environment:
+      - HF_TOKEN=your_token_here
+    ports:
+      - 6673:6673
+    image: adriabama06/openaudio-s1-mini
+    build:
+      context: docker
+      dockerfile: dockerfile.openaudio-s1-mini
+    restart: always
+    volumes:
+      - ./checkpoints:/opt/fish-speech/checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
