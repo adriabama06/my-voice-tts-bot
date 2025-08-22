@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
-import { v4 as uuid_v4 } from "uuid";
+// import { v4 as uuid_v4 } from "uuid";
 
 import config from "../config.js";
 
@@ -57,7 +57,9 @@ const FishSpeechInference = async (data: FishSpeechData): Promise<ArrayBuffer> =
     return await response.arrayBuffer();
 };
 
-export const FishSpeechGenerateAudio = async (text: string, audioFile: string, audioFileText: string): Promise<string | null> => {
+export const FishSpeechGenerateAudio = async (text: string, audioFile: string, audioFileText: string): Promise<ArrayBuffer | null> => {
+    if(!existsSync(audioFile) || !existsSync(audioFileText) || text.trim() === "") return null;
+    
     const audioBuffer = readFileSync(audioFile);
     const audioData = audioBuffer.toString("base64");
 
@@ -65,7 +67,7 @@ export const FishSpeechGenerateAudio = async (text: string, audioFile: string, a
 
     const data: FishSpeechData = {
         ...FishSpeechDataDefault(),
-        text: text,
+        text: text.trim(),
         references: [
             {
                 audio: audioData,
@@ -78,10 +80,10 @@ export const FishSpeechGenerateAudio = async (text: string, audioFile: string, a
     try {
         const audio = await FishSpeechInference(data);
 
-        const outputFileName = `${uuid_v4()}.wav`;
-        writeFileSync(outputFileName, Buffer.from(audio));
+        // const outputFileName = `${uuid_v4()}.wav`;
+        // writeFileSync(outputFileName, Buffer.from(audio));
         
-        return outputFileName;
+        return audio;
     } catch (err) {
         console.log(err);
 

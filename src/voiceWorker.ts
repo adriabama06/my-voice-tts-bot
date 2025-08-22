@@ -1,9 +1,9 @@
 import { existsSync, unlinkSync } from "fs";
+import { Readable } from "stream";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
-import { v4 as uuid_v4 } from "uuid";
 
-import { createAudioPlayer, createAudioResource, getVoiceConnection } from "@discordjs/voice";
+import { createAudioPlayer, createAudioResource, getVoiceConnection, StreamType } from "@discordjs/voice";
 
 import { ServerOptions } from "./commands.js";
 import sleep from "./sleep.js";
@@ -13,11 +13,10 @@ import { FishSpeechGenerateAudio } from "./tts/fish-speech.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// TODO: Change from file to a redable (to do memory => memory instance of memory => file => memory).
-const generateAudio = async (text: string, samplePath: string): Promise<string> => {
+const generateAudio = async (text: string, samplePath: string) => {
     const output = await FishSpeechGenerateAudio(text, samplePath, samplePath + ".txt");
 
-    return output ?? "error";
+    return output ? Readable.from(Buffer.from(output)) : null;
 };
 
 export const startVoiceWorker = async (client: Client<true>, guildId: string, server: ServerOptions) => {
@@ -25,22 +24,22 @@ export const startVoiceWorker = async (client: Client<true>, guildId: string, se
 
     await sleep((connection?.ping.ws ?? 250) * 4);
 
-    if(!connection || !connection.joinConfig.channelId) return;
-    
+    if (!connection || !connection.joinConfig.channelId) return;
+
     let voiceChannel = await client.channels.fetch(connection.joinConfig.channelId);
 
-    if(!voiceChannel || !voiceChannel.isVoiceBased()) return;
+    if (!voiceChannel || !voiceChannel.isVoiceBased()) return;
 
     const player = createAudioPlayer();
 
     connection.subscribe(player);
 
-    for(;connection && voiceChannel.isVoiceBased() && voiceChannel.members.size > 1; connection = getVoiceConnection(guildId)) {
-        if(server.queue.empty()) { await sleep(100); continue; }
+    for (; connection && voiceChannel.isVoiceBased() && voiceChannel.members.size > 1; connection = getVoiceConnection(guildId)) {
+        if (server.queue.empty()) { await sleep(100); continue; }
 
         const element = server.queue.front();
 
-        if(!element || !existsSync(path.join(__dirname, "..", "samples", `${element.userId}.wav`))) { server.queue.pop(); continue;}
+        if (!element || !existsSync(path.join(__dirname, "..", "samples", `${element.userId}.wav`))) { server.queue.pop(); continue; }
 
         const audioFilePath = path.join(__dirname, "..", "samples", `${element.userId}.wav`);
 
@@ -48,7 +47,7 @@ export const startVoiceWorker = async (client: Client<true>, guildId: string, se
 
         server.queue.pop();
 
-        if(audio === "error") continue;
+        if (!audio) continue;
 
         const resource = createAudioResource(audio);
 
@@ -56,13 +55,12 @@ export const startVoiceWorker = async (client: Client<true>, guildId: string, se
 
         await new Promise<void>(async (resolve) => {
             resource.playStream.once("end", () => {
-                unlinkSync(audio);
                 resolve();
             });
         });
     }
 
-    if(connection) {
+    if (connection) {
         connection.destroy();
     }
 
