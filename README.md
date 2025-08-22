@@ -61,9 +61,11 @@ This bot requires two services for voice processing:
 1. TTS (Text-to-Speech) service using OpenAudio-S1-Mini
 2. STT (Speech-to-Text) service using Whisper
 
+Before running TTS (OpenAudio-S1-Mini) you need to get your HF_TOKEN and accept the OpenAudio-S1-Mini conditions in https://huggingface.co/fishaudio/openaudio-s1-mini
+
 Start both services using Docker Compose:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 This will start:
@@ -153,11 +155,11 @@ To use the voice cloning feature:
 
 ```bash
 # Check if services are running
-docker-compose ps
+docker compose ps
 
 # View service logs
-docker-compose logs openaudio-s1-mini
-docker-compose logs whisper
+docker compose logs openaudio-s1-mini
+docker compose logs whisper
 ```
 
 ## Development
