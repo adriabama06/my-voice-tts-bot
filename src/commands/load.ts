@@ -17,17 +17,17 @@ export default {
         await interaction.reply({ content: "Please send a audio.", flags: MessageFlags.Ephemeral });
 
         const audio = await new Promise<Attachment | null>(async (resolve) => {
-            if(!interaction.channel || !interaction.channel.isSendable() || !interaction.channel.isTextBased()) return resolve(null);
+            if(!interaction.channel || !interaction.member || !interaction.channel.isSendable() || !interaction.channel.isTextBased()) return resolve(null);
 
             const collector = interaction.channel.createMessageCollector({
-                filter: (msg) => msg.attachments.size > 0,
+                filter: (msg) => msg.attachments.size > 0 && interaction.member !== null && interaction.member.user.id === msg.author.id,
                 time: 3 * 60 * 1000
             });
 
             collector.on("collect", async (collect) => {
                 const attach = collect.attachments.first();
 
-                if(!attach || !attach.contentType || !["audio/x-wav", "audio/wav", "audio/aac", "audio/mpeg", "audio/ogg", "audio/webm"].includes(attach.contentType)) { console.log(attach?.contentType); return; }
+                if(!attach || !attach.contentType || !["audio/x-wav", "audio/wav", "audio/aac", "audio/mpeg", "audio/ogg", "audio/webm", "audio/mp4"].includes(attach.contentType)) { console.log(attach?.contentType); return; }
 
                 collector.stop("completed");
 
