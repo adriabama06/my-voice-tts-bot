@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync } from "fs";
+import { existsSync, unlinkSync, writeFileSync } from "fs";
 import { Readable } from "stream";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
@@ -9,11 +9,22 @@ import { ServerOptions } from "./commands.js";
 import sleep from "./sleep.js";
 import { Client } from "discord.js";
 import { FishSpeechGenerateAudio } from "./tts/fish-speech.js";
+import { whipserTranscribe } from "./stt/whisper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const generateAudio = async (text: string, samplePath: string) => {
+const generateAudio = async (text: string, samplePath: string): Promise<Readable | null> => {
+    if(text.trim() === "" || !existsSync(samplePath)) return null;
+
+    if(!existsSync(samplePath + ".txt")) {
+        const result = await whipserTranscribe(samplePath);
+
+        if(!result) return null;
+
+        writeFileSync(samplePath + ".txt", result, { encoding: "utf-8" });
+    }
+
     const output = await FishSpeechGenerateAudio(text, samplePath, samplePath + ".txt");
 
     return output ? Readable.from(Buffer.from(output)) : null;
@@ -63,6 +74,4 @@ export const startVoiceWorker = async (client: Client<true>, guildId: string, se
     if (connection) {
         connection.destroy();
     }
-
-    console.log("end");
 };

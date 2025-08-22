@@ -13,20 +13,20 @@ const __dirname = dirname(__filename);
 
 export interface ServerOptions {
     queue: Queue<{ userId: string, content: string }>
-}
+};
 
 export interface CommandRunOptions {
     client: Client<true>,
     interaction: ChatInputCommandInteraction<CacheType>,
     server: ServerOptions
-}
+};
 
 export interface CommandI {
     name: string,
     description: string,
     run: (options: CommandRunOptions) => Promise<void>,
     loadOptions?: (slashCommand: SlashCommandBuilder) => SlashCommandBuilder
-}
+};
 
 export const loadCommands = async (client: Client<true>, commands: Collection<string, CommandI>) => {
     const commandsJson = [];
@@ -79,4 +79,4 @@ export const loadCommands = async (client: Client<true>, commands: Collection<st
 		console.log(`[WARNING] Error refreshing ${commandsJson.length} application (/) commands.`);
 		console.error(error);
 	}
-}
+};
