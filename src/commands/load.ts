@@ -15,11 +15,13 @@ export default {
     description: "Load your voice, try to send your best audio.",
     run: async ({ interaction }) => {
         await interaction.reply({ content: "Please send a audio.", flags: MessageFlags.Ephemeral });
+        
+        const channel = interaction.channel ? interaction.channel : await interaction.user.createDM(true);
 
         const audio = await new Promise<Attachment | null>(async (resolve) => {
-            if(!interaction.channel || !interaction.channel.isSendable() || !interaction.channel.isTextBased()) return resolve(null);
+            if(!channel || !channel.isSendable() || !channel.isTextBased()) return resolve(null);
 
-            const collector = interaction.channel.createMessageCollector({
+            const collector = channel.createMessageCollector({
                 filter: (msg) => msg.attachments.size > 0 && interaction.user.id === msg.author.id,
                 time: 3 * 60 * 1000
             });
