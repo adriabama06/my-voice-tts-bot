@@ -1,6 +1,7 @@
 # Custom
 samples/*.wav
 samples/*.txt
+checkpoints
 
 # Logs
 logs
