@@ -8,13 +8,16 @@ import { createAudioPlayer, createAudioResource, getVoiceConnection } from "@dis
 import { ServerOptions } from "./commands.js";
 import sleep from "./sleep.js";
 import { Client } from "discord.js";
+import { FishSpeechGenerateAudio } from "./tts/fish-speech.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// TODO: Change from file to a redable.
-const generateAudio = (text: string, samplePath: string): string => {
-    return `${uuid_v4()}.wav`;
+// TODO: Change from file to a redable (to do memory => memory instance of memory => file => memory).
+const generateAudio = async (text: string, samplePath: string): Promise<string> => {
+    const output = await FishSpeechGenerateAudio(text, samplePath, samplePath + ".txt");
+
+    return output ?? "error";
 };
 
 export const startVoiceWorker = async (client: Client<true>, guildId: string, server: ServerOptions) => {
@@ -41,15 +44,11 @@ export const startVoiceWorker = async (client: Client<true>, guildId: string, se
 
         const audioFilePath = path.join(__dirname, "..", "samples", `${element.userId}.wav`);
 
-        const audio = generateAudio(element.content, audioFilePath);
-
-        console.log(element.content, audioFilePath, audio);
+        const audio = await generateAudio(element.content, audioFilePath);
 
         server.queue.pop();
 
-        await sleep(5000);
-
-        continue;
+        if(audio === "error") continue;
 
         const resource = createAudioResource(audio);
 

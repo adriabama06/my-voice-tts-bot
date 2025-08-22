@@ -1,11 +1,13 @@
-const { TOKEN } = process.env;
+const { TOKEN, TTS_KEY, TTS_URL } = process.env;
 
-if(!TOKEN) {
+if(!TOKEN || !TTS_KEY || !TTS_URL) {
     console.log("[WARNING] Missing environment");
 
     process.exit(0);
 }
 
 export default {
-    TOKEN
+    TOKEN,
+    TTS_KEY,
+    TTS_URL
 };

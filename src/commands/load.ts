@@ -46,6 +46,8 @@ export default {
                 "-hide_banner",
                 "-i", audio.url,
                 "-map", "0:a:0", // only pick the first track of audio
+                "-ac", "1", // single channel
+                "-ar", "44100", // 44.1k sample
                 "-y", path.join(__dirname, "..", "..", "samples", `${interaction.user.id}.wav`)
             ];
 
