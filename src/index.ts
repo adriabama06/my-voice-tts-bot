@@ -56,6 +56,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand() || interaction.commandName !== "load") return;
 
+    if(interaction.guild) return;
+
     const command = commands.get(interaction.commandName);
 
     if (!command) {
